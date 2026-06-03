@@ -1,0 +1,121 @@
+version: 2
+
+sources:
+  - name: staging
+    schema: staging
+    description: "Raw data loaded by the ingestion DAG into PostgreSQL."
+    tables:
+      - name: flight_raw
+        description: "Raw BTS On-Time Performance records, one row per flight segment."
+      - name: airline_raw
+        description: "Raw airline reference data from OpenFlights."
+      - name: airport_raw
+        description: "Raw airport reference data from OpenFlights."
+
+models:
+  - name: stg_flights
+    description: >
+      Cleaned and lightly transformed view of raw BTS flight records.
+      Adds derived flags (is_cancelled, is_delayed_*), time-of-day buckets,
+      delay-cause attribution, and route shorthand. One row per flight segment.
+    columns:
+      - name: flight_id
+        description: "Surrogate primary key from the raw load."
+        tests:
+          - unique
+          - not_null
+
+      - name: fl_date
+        description: "Date the flight operated."
+        tests:
+          - not_null
+
+      - name: reporting_airline
+        description: "IATA carrier code of the reporting airline."
+        tests:
+          - not_null
+
+      - name: origin
+        description: "IATA code of the origin airport."
+        tests:
+          - not_null
+
+      - name: dest
+        description: "IATA code of the destination airport."
+        tests:
+          - not_null
+
+      - name: distance
+        description: "Great-circle distance of the flight in miles."
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 1
+              max_value: 6000
+
+      - name: dep_hour
+        description: "Scheduled departure hour (0–23) derived from CRSDepTime."
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+              max_value: 23
+
+      - name: arr_delay_minutes
+        description: "Arrival delay in minutes (negative = early arrival)."
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: -120
+              max_value: 1500
+
+      - name: dep_time_period
+        description: "Time-of-day bucket: Morning / Afternoon / Evening / Night."
+        tests:
+          - accepted_values:
+              values: ['Morning', 'Afternoon', 'Evening', 'Night']
+
+      - name: primary_delay_cause
+        description: "Delay component with the highest value: Carrier / Weather / NAS / Security / Late Aircraft / None."
+        tests:
+          - accepted_values:
+              values: ['Carrier', 'Weather', 'NAS', 'Security', 'Late Aircraft', 'None']
+
+  - name: stg_airlines
+    description: "Cleaned airline reference data with IATA codes and carrier names."
+    columns:
+      - name: iata_code
+        description: "Two-letter IATA airline code."
+        tests:
+          - unique
+          - not_null
+
+      - name: carrier_name
+        description: "Full airline name."
+        tests:
+          - not_null
+
+  - name: stg_airports
+    description: "Cleaned airport reference data filtered to IATA-coded airports."
+    columns:
+      - name: iata_code
+        description: "Three-letter IATA airport code."
+        tests:
+          - unique
+          - not_null
+
+      - name: airport_name
+        description: "Full airport name."
+        tests:
+          - not_null
+
+      - name: latitude
+        description: "Airport latitude in decimal degrees."
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: -90
+              max_value: 90
+
+      - name: longitude
+        description: "Airport longitude in decimal degrees."
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: -180
+              max_value: 180

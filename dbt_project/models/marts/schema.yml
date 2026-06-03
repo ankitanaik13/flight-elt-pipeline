@@ -1,0 +1,171 @@
+version: 2
+
+models:
+  - name: mart_carrier_performance
+    description: >
+      Monthly carrier performance summary. One row per airline per calendar month.
+      Answers: which airlines have the worst delay rates and cancellation rates?
+    columns:
+      - name: carrier_name
+        description: "Full airline name."
+        tests:
+          - not_null
+
+      - name: reporting_airline
+        description: "IATA carrier code."
+        tests:
+          - not_null
+
+      - name: flight_month
+        description: "First day of the month this row summarises."
+        tests:
+          - not_null
+
+      - name: total_flights
+        description: "Total flight segments operated by this carrier in the month."
+        tests:
+          - not_null
+
+      - name: cancellation_rate
+        description: "Percentage of flights cancelled (0–100)."
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+              max_value: 100
+
+      - name: on_time_arrival_rate
+        description: "Percentage of flights arriving within 15 minutes of schedule."
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+              max_value: 100
+
+      - name: on_time_departure_rate
+        description: "Percentage of flights departing within 15 minutes of schedule."
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+              max_value: 100
+
+      - name: avg_arr_delay_minutes
+        description: "Average arrival delay in minutes for delayed flights only."
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+              max_value: 1500
+              inclusive: false
+
+      - name: reliability_score
+        description: "Composite score = on_time_arrival_rate − cancellation_rate. Higher is better."
+
+  - name: mart_airport_performance
+    description: >
+      Airport-level departure performance summary. One row per origin airport.
+      Answers: which airports are the biggest bottlenecks?
+    columns:
+      - name: iata_code
+        description: "Three-letter IATA airport code."
+        tests:
+          - not_null
+          - unique
+
+      - name: airport_name
+        description: "Full airport name."
+        tests:
+          - not_null
+
+      - name: total_departures
+        description: "Total departing flight segments."
+        tests:
+          - not_null
+
+      - name: departure_cancellation_rate
+        description: "Percentage of departures cancelled."
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+              max_value: 100
+
+      - name: avg_departure_delay
+        description: "Average departure delay in minutes (delayed flights only)."
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+              max_value: 1500
+              inclusive: false
+
+      - name: airport_rank
+        description: "Rank by total departures (1 = busiest)."
+        tests:
+          - not_null
+
+  - name: mart_delay_analysis
+    description: >
+      Delay pattern analysis grouped by cause, time of day, day of week, and distance.
+      Answers: what causes most delays, and when do they occur?
+    columns:
+      - name: delay_label
+        description: "Severity bucket: On Time / Minor Delay / Moderate Delay / etc."
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['On Time', 'Minor Delay', 'Moderate Delay', 'Significant Delay', 'Severe Delay']
+
+      - name: primary_delay_cause
+        description: "Dominant delay cause for this group."
+        tests:
+          - not_null
+
+      - name: flight_count
+        description: "Number of flights in this group."
+        tests:
+          - not_null
+
+      - name: avg_arr_delay_minutes
+        description: "Average arrival delay in minutes."
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: -120
+              max_value: 1500
+
+  - name: mart_route_analysis
+    description: >
+      Route + carrier performance summary. One row per route/carrier combination
+      with at least 10 flights. Answers: which routes are most unreliable?
+    columns:
+      - name: route
+        description: "Origin-destination pair in IATA format (e.g. JFK-LAX)."
+        tests:
+          - not_null
+
+      - name: carrier_name
+        description: "Airline operating this route."
+        tests:
+          - not_null
+
+      - name: total_flights
+        description: "Total flights on this route by this carrier."
+        tests:
+          - not_null
+
+      - name: on_time_rate
+        description: "Percentage of on-time arrivals (0–100)."
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+              max_value: 100
+
+      - name: cancellation_rate
+        description: "Percentage of flights cancelled (0–100)."
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+              max_value: 100
+
+      - name: avg_arr_delay_minutes
+        description: "Average arrival delay in minutes for delayed flights."
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+              max_value: 1500
+              inclusive: false

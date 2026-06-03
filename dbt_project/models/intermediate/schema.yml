@@ -1,0 +1,75 @@
+version: 2
+
+models:
+  - name: int_flights_enriched
+    description: >
+      Enriched flight table joining raw flight records with airline, airport,
+      cancellation-code, and delay-category lookups. One row per flight segment.
+      Used as the single source of truth for all downstream mart models.
+    columns:
+      - name: flight_id
+        description: "Surrogate primary key."
+        tests:
+          - unique
+          - not_null
+
+      - name: fl_date
+        description: "Flight operating date."
+        tests:
+          - not_null
+
+      - name: reporting_airline
+        description: "IATA carrier code."
+        tests:
+          - not_null
+
+      - name: carrier_name
+        description: "Full airline name from the OpenFlights reference data."
+        tests:
+          - not_null
+
+      - name: origin
+        description: "IATA origin airport code."
+        tests:
+          - not_null
+
+      - name: origin_airport_name
+        description: "Full name of the origin airport."
+        tests:
+          - not_null
+
+      - name: dest
+        description: "IATA destination airport code."
+        tests:
+          - not_null
+
+      - name: dest_airport_name
+        description: "Full name of the destination airport."
+        tests:
+          - not_null
+
+      - name: delay_label
+        description: "Human-readable delay severity bucket."
+        tests:
+          - accepted_values:
+              values: ['On Time', 'Minor Delay', 'Moderate Delay', 'Significant Delay', 'Severe Delay']
+
+      - name: distance_bucket
+        description: "Flight distance category."
+        tests:
+          - accepted_values:
+              values: ['Short Haul', 'Medium Haul', 'Long Haul']
+
+      - name: distance
+        description: "Flight distance in miles."
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 1
+              max_value: 6000
+
+      - name: arr_delay_minutes
+        description: "Arrival delay in minutes."
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: -120
+              max_value: 1500

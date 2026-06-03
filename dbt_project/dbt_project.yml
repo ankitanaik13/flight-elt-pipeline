@@ -1,0 +1,29 @@
+name: flight_elt
+version: "1.0.0"
+config-version: 2
+profile: flight_pipeline
+
+model-paths: ["models"]
+seed-paths: ["seeds"]
+test-paths: ["tests"]
+macro-paths: ["macros"]
+target-path: "target"
+clean-targets:
+  - "target"
+  - "dbt_packages"
+
+models:
+  flight_elt:
+    staging:
+      +schema: staging
+      +materialized: view
+    intermediate:
+      +schema: intermediate
+      +materialized: table
+    marts:
+      +schema: marts
+      +materialized: table
+
+seeds:
+  flight_elt:
+    +schema: seeds

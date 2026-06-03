@@ -1,0 +1,37 @@
+# Environment — never commit real credentials
+.env
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Airflow logs (can be huge)
+airflow/logs/*
+!airflow/logs/.gitkeep
+
+# Downloaded data files
+*.zip
+*.csv
+*.parquet
+*.dat
+
+# macOS artifacts
+.DS_Store
+
+# dbt generated artifacts
+dbt_project/target/
+dbt_project/dbt_packages/
+dbt_project/logs/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp

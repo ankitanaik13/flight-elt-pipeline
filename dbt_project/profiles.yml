@@ -1,0 +1,13 @@
+flight_pipeline:
+  target: dev
+  outputs:
+    dev:
+      type: postgres
+      host: "{{ env_var('PIPELINE_DB_HOST') }}"
+      user: "{{ env_var('PIPELINE_DB_USER') }}"
+      password: "{{ env_var('PIPELINE_DB_PASSWORD') }}"
+      port: "{{ env_var('PIPELINE_DB_PORT') | int }}"
+      dbname: "{{ env_var('PIPELINE_DB') }}"
+      schema: staging
+      threads: 4
+      connect_timeout: 10

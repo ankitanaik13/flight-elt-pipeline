@@ -1,0 +1,96 @@
+version: "3.9"
+
+x-airflow-common: &airflow-common
+  image: apache/airflow:2.8.0
+  environment: &airflow-common-env
+    AIRFLOW__CORE__EXECUTOR: ${AIRFLOW__CORE__EXECUTOR}
+    AIRFLOW__CORE__LOAD_EXAMPLES: ${AIRFLOW__CORE__LOAD_EXAMPLES}
+    AIRFLOW__CORE__FERNET_KEY: ${AIRFLOW__CORE__FERNET_KEY}
+    AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: ${AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION}
+    AIRFLOW__CORE__MAX_ACTIVE_RUNS_PER_DAG: ${AIRFLOW__CORE__MAX_ACTIVE_RUNS_PER_DAG}
+    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: ${AIRFLOW__DATABASE__SQL_ALCHEMY_CONN}
+    AIRFLOW__WEBSERVER__SECRET_KEY: ${AIRFLOW__WEBSERVER__SECRET_KEY}
+    PIPELINE_DB: ${PIPELINE_DB}
+    PIPELINE_DB_HOST: ${PIPELINE_DB_HOST}
+    PIPELINE_DB_PORT: ${PIPELINE_DB_PORT}
+    PIPELINE_DB_USER: ${PIPELINE_DB_USER}
+    PIPELINE_DB_PASSWORD: ${PIPELINE_DB_PASSWORD}
+    PIPELINE_CONN_STRING: ${PIPELINE_CONN_STRING}
+    BTS_FLIGHT_URL: ${BTS_FLIGHT_URL}
+    BTS_LOCAL_ZIP: ${BTS_LOCAL_ZIP}
+    BTS_LOCAL_CSV: ${BTS_LOCAL_CSV}
+    AIRPORTS_URL: ${AIRPORTS_URL}
+    AIRLINES_URL: ${AIRLINES_URL}
+    DBT_PROJECT_DIR: ${DBT_PROJECT_DIR}
+    DBT_PROFILES_DIR: ${DBT_PROFILES_DIR}
+    PYTHONPATH: /opt/airflow
+  volumes:
+    - ./airflow/dags:/opt/airflow/dags
+    - ./airflow/plugins:/opt/airflow/plugins
+    - ./airflow/logs:/opt/airflow/logs
+    - ./ingestion:/opt/airflow/ingestion
+    - ./dbt_project:/opt/airflow/dbt_project
+    - ./sql:/opt/airflow/sql
+  networks:
+    - elt_network
+
+services:
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./sql/init_databases.sql:/docker-entrypoint-initdb.d/init_databases.sql
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "airflow"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    networks:
+      - elt_network
+
+  airflow-init:
+    <<: *airflow-common
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: bash -c "pip install pandas==1.5.3 pyarrow==11.0.0 sqlalchemy==1.4.50 psycopg2-binary==2.9.9 requests==2.31.0 python-dotenv==1.0.0 dbt-core==1.7.0 dbt-postgres==1.7.0 && airflow db upgrade && airflow users create --username admin --password admin --firstname Admin --lastname User --role Admin --email admin@example.com"
+
+  airflow-webserver:
+    <<: *airflow-common
+    depends_on:
+      postgres:
+        condition: service_healthy
+      airflow-init:
+        condition: service_completed_successfully
+    command: bash -c "pip install pandas==1.5.3 pyarrow==11.0.0 sqlalchemy==1.4.50 psycopg2-binary==2.9.9 requests==2.31.0 python-dotenv==1.0.0 dbt-core==1.7.0 dbt-postgres==1.7.0 && airflow webserver"
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+      start_period: 30s
+
+  airflow-scheduler:
+    <<: *airflow-common
+    depends_on:
+      postgres:
+        condition: service_healthy
+      airflow-init:
+        condition: service_completed_successfully
+    command: bash -c "pip install pandas==1.5.3 pyarrow==11.0.0 sqlalchemy==1.4.50 psycopg2-binary==2.9.9 requests==2.31.0 python-dotenv==1.0.0 dbt-core==1.7.0 dbt-postgres==1.7.0 && airflow scheduler"
+
+networks:
+  elt_network:
+    driver: bridge
+
+volumes:
+  postgres_data:
