@@ -192,3 +192,30 @@ Business-facing aggregates answering one analytical domain each. Fully denormali
 - **Modelled a 3-layer dbt transformation architecture** (staging views → enriched intermediate table → 4 analytical marts) with 30+ column-level schema tests covering uniqueness, null-safety, accepted ranges, and accepted values — catching data quality issues before they reach analysts.
 
 - **Containerised the complete data stack** (Airflow, PostgreSQL, dbt) with Docker Compose, including service health checks, named volumes, and a one-command `make up` developer experience, reducing onboarding time to under 5 minutes.
+
+## Dashboard
+
+An interactive Streamlit dashboard visualizes all analytical marts with:
+- Carrier reliability leaderboard (Delta #1, Alaska last)
+- Delay causes pie chart (Late Aircraft 38.5%)
+- Time of day delay analysis (Night worst, Morning best)
+- Top 10 most unreliable routes table
+- Airport performance comparison (busiest vs most delayed)
+- Cancellation rates by airline
+- Flight distance vs delay analysis
+
+**Run locally:**
+```bash
+pip install -r dashboard/requirements.txt
+streamlit run dashboard/app.py
+```
+
+## Key Insights
+
+- **Delta Air Lines** most reliable at 80.4% on-time rate
+- **Alaska Airlines** lowest reliability at ~42%
+- **Late Aircraft** cascading delays are the #1 cause at 38.5%
+- **Night flights** have worst delays, Morning flights are best
+- **ATL (Hartsfield-Jackson)** is the busiest airport with 131,575 departures
+- **OGG-PDX route** has only 8.7% on-time rate
+- **3,283,626** total flight records analyzed
