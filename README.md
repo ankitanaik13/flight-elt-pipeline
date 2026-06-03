@@ -203,6 +203,11 @@ An interactive Streamlit dashboard visualizes all analytical marts with:
 - Airport performance comparison (busiest vs most delayed)
 - Cancellation rates by airline
 - Flight distance vs delay analysis
+<img width="1457" height="703" alt="Screenshot 2026-06-03 at 12 45 35 AM" src="https://github.com/user-attachments/assets/a050fef1-3e89-4ef6-952f-360bebf031de" />
+<img width="1458" height="644" alt="Screenshot 2026-06-03 at 12 45 59 AM" src="https://github.com/user-attachments/assets/e26cd1a5-2f24-4b69-981f-e55d39e70cdb" />
+<img width="1456" height="632" alt="Screenshot 2026-06-03 at 12 46 26 AM" src="https://github.com/user-attachments/assets/cf6334aa-b409-4c10-8311-a10b446318be" />
+<img width="1461" height="644" alt="Screenshot 2026-06-03 at 12 46 14 AM" src="https://github.com/user-attachments/assets/eb0ee1a3-31e9-4ef7-bf77-36aa93591dea" />
+
 
 **Run locally:**
 ```bash
