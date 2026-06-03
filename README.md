@@ -38,14 +38,14 @@ BTS API → [Airflow: flight_data_ingestion DAG]
 
 ## Business Questions Answered
 
-- Which airlines have the worst on-time arrival rates and highest cancellation rates?
-- Which airports are the biggest departure bottlenecks by volume and delay?
-- What is the primary cause of delays — carrier, weather, NAS, or late aircraft?
-- Which routes are most unreliable, and which carriers operate them?
-- How do delays vary by time of day (morning vs. evening)?
-- Are weekend flights more or less reliable than weekday flights?
-- Which routes have the highest cancellation rates?
-- How does flight distance (short/medium/long haul) correlate with delay severity?
+- Which airlines have the best and worst reliability scores?
+- Which airlines have the highest cancellation rates?
+- What causes most delays? Late Aircraft leads at 38.5%, followed by Carrier (25.7%)
+- Which routes are most unreliable? OGG-PDX at only 8.7% on-time rate
+- How do delays vary by time of day? Night flights worst, Morning best
+- Which airports handle most departures? ATL #1 with 131,575
+- Which airports have worst delays? AVP averages 224.5 min
+- How does flight distance affect delay severity?
 
 ## Tech Stack
 
